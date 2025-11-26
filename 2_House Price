@@ -1,0 +1,26 @@
+# Multiple Linear Regression - House Price
+import numpy as np
+from sklearn.linear_model import LinearRegression
+# Features: [Area, Bedrooms, Age, Bathrooms, Floors]
+X = np.array([
+    [1000, 2, 10, 1, 1],
+    [1500, 3, 5, 2, 2],
+    [2000, 3, 2, 2, 2],
+    [2500, 4, 1, 3, 2],
+    [1800, 3, 8, 2, 1]
+])
+# Price (in Lakhs)
+y = np.array([50, 75, 90, 120, 85])
+# Train the model
+model = LinearRegression()
+model.fit(X, y)
+# Results
+print("Coefficients:", model.coef_)
+print("Intercept:", model.intercept_)
+# Predict price for a new house
+new = np.array([[2200, 3, 3, 2, 2]])
+pred = model.predict(new)
+print("Predicted Price:", pred[0])
+
+
+
