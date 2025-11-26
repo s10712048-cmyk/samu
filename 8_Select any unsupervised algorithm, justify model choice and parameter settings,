@@ -1,3 +1,127 @@
+import numpy as np
+import pandas as pd
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, confusion_matrix,
+roc_auc_score, average_precision_score, precision_recall_curve
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import seaborn as sns
+# 1. SYNTHETIC CREDIT CARD FRAUD DATASET
+np.random.seed(42)
+n_samples = 1000
+fraud_ratio = 0.01 # 1% fraud
+data = {
+ 'Time': np.random.uniform(0, 172800, n_samples),
+ 'Amount': np.concatenate([
+ np.random.exponential(50, int(n_samples*(1-fraud_ratio))),
+ np.random.exponential(500, int(n_samples*fraud_ratio))
+ ])
+}
+# Generate PCA-like V1–V28 features
+for i in range(1, 29):
+ if i in [1,2,3,4,5,7,9,10,11,12,14,16,17,18]:
+ data[f'V{i}'] = np.concatenate([
+ np.random.normal(0, 1, int(n_samples*(1-fraud_ratio))),
+ np.random.normal(2, 2, int(n_samples*fraud_ratio))
+ ])
+ else:
+ data[f'V{i}'] = np.random.normal(0, 1, n_samples)
+# Class labels
+data['Class'] = np.concatenate([
+ np.zeros(int(n_samples*(1-fraud_ratio))),
+ np.ones(int(n_samples*fraud_ratio))
+])
+df = pd.DataFrame(data)
+print("Dataset shape:", df.shape)
+print(df['Class'].value_counts())
+print("\nFraud Percentage:", df['Class'].mean()*100)
+# 2. PREPROCESSING (Scaling)
+feature_cols = ['Time', 'Amount'] + [f"V{i}" for i in range(1,29)]
+X = df[feature_cols].values
+y = df['Class'].values
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+print("\nData scaled successfully.")
+# 3. K-MEANS CLUSTERING
+kmeans = KMeans(n_clusters=2, n_init=10, max_iter=300,
+random_state=42)
+kmeans.fit(X_scaled)
+labels = kmeans.labels_
+centers = kmeans.cluster_centers_
+# Distance from cluster center
+distances = np.linalg.norm(X_scaled - centers[labels], axis=1)
+# Fraud threshold based on actual fraud rate
+threshold = np.quantile(distances, 0.99)
+y_pred = (distances > threshold).astype(int)
+# 4. EVALUATION
+print("\n===== Evaluation Metrics =====")
+print("\nClassification Report:")
+print(classification_report(y, y_pred))
+print("\nConfusion Matrix:")
+cm = confusion_matrix(y, y_pred)
+print(cm)
+roc_auc = roc_auc_score(y, distances)
+pr_auc = average_precision_score(y, distances)
+print("\nROC-AUC:", roc_auc)
+print("PR-AUC:", pr_auc)
+# 5. VISUALIZATIONS
+plt.figure(figsize=(15,10))
+# Distances (Fraud vs Normal)
+plt.subplot(2,3,1)
+plt.scatter(range(len(distances)), distances, c=y_pred, cmap='coolwarm',
+s=3)
+plt.axhline(threshold, color='black', linestyle='--')
+plt.title("Distance to Cluster Center")
+plt.xlabel("Index")
+plt.ylabel("Distance")
+# Histogram
+plt.subplot(2,3,2)
+plt.hist([distances[y==0], distances[y==1]], bins=40,
+label=['Normal','Fraud'], alpha=0.7)
+plt.axvline(threshold, color='black', linestyle='--')
+plt.title("Distance Distribution")
+plt.legend()
+# Confusion Matrix Heatmap
+plt.subplot(2,3,3)
+sns.heatmap(pd.DataFrame(cm, index=['Actual Normal','Actual Fraud'],
+ columns=['Pred Normal','Pred Fraud']),
+ annot=True, fmt='d', cmap='Blues')
+plt.title("Confusion Matrix")
+# t-SNE Visualization
+plt.subplot(2,3,4)
+tsne = TSNE(n_components=2, random_state=42)
+X_tsne = tsne.fit_transform(X_scaled[:500])
+plt.scatter(X_tsne[:,0], X_tsne[:,1], c=y_pred[:500], cmap='coolwarm',
+alpha=0.6)
+plt.title("t-SNE Projection (Predicted Labels)")
+# Feature importance (standard deviation)
+plt.subplot(2,3,5)
+importance = np.std(X_scaled, axis=0)
+top_idx = np.argsort(importance)[-10:]
+plt.barh(range(10), importance[top_idx])
+plt.yticks(range(10), [feature_cols[i] for i in top_idx])
+plt.title("Top 10 Feature Std-Devs")
+# Precision-Recall Curve
+plt.subplot(2,3,6)
+precision, recall, _ = precision_recall_curve(y, distances)
+plt.plot(recall, precision)
+plt.title("Precision-Recall Curve")
+plt.xlabel("Recall")
+plt.ylabel("Precision")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+
+
+
+
+
+
+
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
