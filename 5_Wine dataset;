@@ -1,0 +1,56 @@
+import numpy as np
+import pandas as pd
+from sklearn.datasets import load_wine
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from imblearn.over_sampling import SMOTE
+
+# ✅ Load Dataset
+wine = load_wine()
+X, y = wine.data, wine.target
+
+print("Class distribution before balancing:", np.bincount(y))
+
+# ✅ Train-Test Split (with stratify to preserve class ratios)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+# ✅ Feature Scaling
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# ✅ Apply SMOTE ONLY on Training Data
+smote = SMOTE(random_state=42)
+X_train_res, y_train_res = smote.fit_resample(X_train, y_train)
+
+print("Class distribution after SMOTE:", np.bincount(y_train_res))
+
+# ✅ Logistic Regression (Multiclass)
+log_reg = LogisticRegression(
+    multi_class='multinomial',
+    solver='lbfgs',
+    max_iter=1000,
+    random_state=42
+)
+log_reg.fit(X_train_res, y_train_res)
+y_pred_lr = log_reg.predict(X_test)
+
+print("\n===== Logistic Regression (with SMOTE) =====")
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_lr))
+print("Classification Report:\n", classification_report(y_test, y_pred_lr, target_names=wine.target_names))
+print("Accuracy:", accuracy_score(y_test, y_pred_lr))
+
+# ✅ Random Forest
+rf = RandomForestClassifier(n_estimators=200, random_state=42)
+rf.fit(X_train_res, y_train_res)
+y_pred_rf = rf.predict(X_test)
+
+print("\n===== Random Forest (with SMOTE) =====")
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_rf))
+print("Classification Report:\n", classification_report(y_test, y_pred_rf, target_names=wine.target_names))
+print("Accuracy:", accuracy_score(y_test, y_pred_rf))
