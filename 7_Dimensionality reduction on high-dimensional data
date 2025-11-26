@@ -1,3 +1,80 @@
+import pandas as pd
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score
+import matplotlib.pyplot as plt
+# ===== Movies Dataset =====
+movies_df = pd.DataFrame({
+ 'budget':[200,150,80,120,90,180,60,100,130,70],
+ 'runtime':[120,110,95,105,88,135,92,115,125,98],
+ 'rating':[8.2,7.8,6.5,7.2,6.8,8.5,6.2,7.5,7.9,6.9],
+
+'votes':[500000,350000,120000,250000,180000,450000,90000,300000,38
+0000,150000],
+ 'revenue':[800,600,200,450,300,750,180,520,580,250],
+ 'year':[2019,2020,2018,2021,2017,2019,2016,2020,2021,2018]
+})
+# Standardize
+movies_scaled = StandardScaler().fit_transform(movies_df.drop('year',
+axis=1))
+# PCA (2D)
+movies_pca = PCA(n_components=2).fit_transform(movies_scaled)
+# KMeans
+kmeans = KMeans(n_clusters=3, random_state=42)
+labels = kmeans.fit_predict(movies_pca)
+# Silhouette
+print("Movies Silhouette Score:", silhouette_score(movies_pca, labels))
+# Plot Movies Clusters
+plt.scatter(movies_pca[:, 0], movies_pca[:, 1], c=labels, cmap='viridis')
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1],
+ color='red', marker='X', s=200)
+plt.title("Movies Dataset - PCA + KMeans")
+plt.xlabel("PC1"); plt.ylabel("PC2")
+plt.show()
+# ===== House Pricing Dataset =====
+house_df = pd.DataFrame({
+ 'size_sqft':[1500,1800,2000,2200,2400,2600,2800,3000,3200,3500],
+ 'bedrooms':[3,3,4,4,4,5,5,5,6,6],
+ 'bathrooms':[2,2.5,3,3,3.5,4,4,4.5,5,5],
+ 'age_years':[5,10,2,15,8,1,20,12,3,25],
+ 'location_score':[8,7,9,6,8,9,5,7,8,4],
+ 'garage_cars':[2,2,3,2,3,3,2,3,4,2],
+ 'price_lakhs':[45,52,68,55,75,85,48,78,95,42]
+})
+# Standardize features
+house_scaled =
+StandardScaler().fit_transform(house_df.drop('price_lakhs', axis=1))
+# PCA (all components)
+pca = PCA().fit(house_scaled)
+expl_var = pca.explained_variance_ratio_
+cum_var = np.cumsum(expl_var)
+print("House Cumulative Variance:", cum_var)
+# Plot variance
+plt.bar(range(1, len(expl_var)+1), expl_var)
+plt.plot(range(1, len(cum_var)+1), cum_var, marker='o')
+plt.title("House Dataset - PCA Variance")
+plt.xlabel("PC"); plt.ylabel("Explained Variance")
+plt.show()
+# 2D PCA Projection
+house_pca_2d = PCA(n_components=2).fit_transform(house_scaled)
+# Plot colored by price
+plt.scatter(house_pca_2d[:,0], house_pca_2d[:,1],
+ c=house_df['price_lakhs'], cmap='coolwarm', s=90)
+plt.colorbar(label="Price (Lakhs)")
+plt.title("House Dataset - PCA 2D View")
+plt.xlabel("PC1"); plt.ylabel("PC2")
+plt.show()
+
+
+
+
+
+
+
+
+
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_digits
 from sklearn.cluster import KMeans
