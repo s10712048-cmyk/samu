@@ -1,0 +1,59 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+df = pd.read_csv('diabetes.csv')
+
+zeros_to_replace = ['Glucose', 'BloodPressure', 'SkinThickness', 'Insulin', 'BMI']
+for col in zeros_to_replace:
+    df[col] = df[col].replace(0, np.nan)
+    df[col] = df[col].fillna(df[col].mean())
+
+X = df.drop('Outcome', axis=1)
+y = df['Outcome']
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+
+# ✅ Scale only for Logistic Regression
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# ✅ Logistic Regression
+log_reg = LogisticRegression(max_iter=1000, random_state=42)
+log_reg.fit(X_train_scaled, y_train)
+log_pred = log_reg.predict(X_test_scaled)
+
+# ✅ Random Forest (NO scaling)
+rf = RandomForestClassifier(random_state=42)
+rf.fit(X_train, y_train)
+rf_pred = rf.predict(X_test)
+
+# ✅ Evaluation Function
+def evaluate(y_true, y_pred, name):
+    print(f"\n{name} Evaluation:")
+    print("Accuracy:", accuracy_score(y_true, y_pred))
+    print(classification_report(y_true, y_pred))
+    cm = confusion_matrix(y_true, y_pred)
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title(name)
+    plt.show()
+
+evaluate(y_test, log_pred, "Logistic Regression")
+evaluate(y_test, rf_pred, "Random Forest")
+
+# ✅ AUC Comparison
+log_prob = log_reg.predict_proba(X_test_scaled)[:,1]
+rf_prob = rf.predict_proba(X_test)[:,1]
+
+print("Logistic Regression AUC:", roc_auc_score(y_test, log_prob))
+print("Random Forest AUC:", roc_auc_score(y_test, rf_prob))
+
