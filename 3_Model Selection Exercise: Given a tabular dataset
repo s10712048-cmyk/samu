@@ -113,3 +113,61 @@ else:
 
 sample = X_test[0].reshape(1, -1)
 print(f"Prediction: {final_model.predict(sample)[0]}")
+
+
+
+
+
+
+
+
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Dataset
+df = pd.DataFrame({
+    'Preg':[6,1,8,1,0,5,3,10,2,8],
+    'Glucose':[148,85,183,89,137,116,78,115,197,125],
+    'BP':[72,66,64,66,40,74,50,70,70,96],
+    'Skin':[35,29,0,23,35,0,32,30,45,0],
+    'Insulin':[0,0,0,94,168,0,88,96,543,0],
+    'BMI':[33.6,26.6,23.3,28.1,43.1,25.6,31.0,34.6,30.5,0],
+    'Age':[50,31,32,21,33,30,26,54,53,54],
+    'Outcome':[1,0,1,0,1,0,1,0,1,1]
+})
+
+# Replace 0 with mean
+cols = ['Glucose','BP','Skin','Insulin','BMI']
+for c in cols:
+    df[c] = df[c].replace(0, np.nan).fillna(df[c].mean())
+
+# Features & Target
+X = df.drop('Outcome', axis=1)
+y = df['Outcome']
+
+# Split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)
+
+# Models
+log_model = LogisticRegression()
+rf_model = RandomForestClassifier()
+
+log_model.fit(X_train, y_train)
+rf_model.fit(X_train, y_train)
+
+# Predictions
+log_pred = log_model.predict(X_test)
+rf_pred = rf_model.predict(X_test)
+
+# Results
+print("\nLogistic Regression Accuracy:", accuracy_score(y_test, log_pred))
+print(confusion_matrix(y_test, log_pred))
+
+print("\nRandom Forest Accuracy:", accuracy_score(y_test, rf_pred))
+print(confusion_matrix(y_test, rf_pred))
