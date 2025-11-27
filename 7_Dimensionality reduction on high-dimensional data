@@ -115,3 +115,70 @@ plt.figure(figsize=(10, 7))
 plt.scatter(X_pca[:, 0], X_pca[:, 1], c=y_pred, cmap='tab10', s=20)
 plt.colorbar()
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# ---- Movies Dataset ----
+movies = pd.DataFrame({
+    'budget':[200,150,80,120,90,180,60,100,130,70],
+    'runtime':[120,110,95,105,88,135,92,115,125,98],
+    'rating':[8.2,7.8,6.5,7.2,6.8,8.5,6.2,7.5,7.9,6.9],
+    'votes':[500000,350000,120000,250000,180000,450000,90000,300000,380000,150000]
+})
+
+# Scale features
+scaler = StandardScaler()
+movies_scaled = scaler.fit_transform(movies)
+
+# PCA (2 components)
+pca = PCA(n_components=2)
+movies_pca = pca.fit_transform(movies_scaled)
+
+# KMeans (3 clusters)
+kmeans = KMeans(n_clusters=3, random_state=42)
+labels = kmeans.fit_predict(movies_pca)
+
+# Plot clusters
+plt.scatter(movies_pca[:,0], movies_pca[:,1], c=labels)
+plt.title("Movies - PCA + KMeans")
+plt.xlabel("PC1"); plt.ylabel("PC2")
+plt.show()
+
+# ---- House Dataset ----
+house = pd.DataFrame({
+    'size':[1500,1800,2000,2200,2400,2600,2800,3000,3200,3500],
+    'bed':[3,3,4,4,4,5,5,5,6,6],
+    'bath':[2,2.5,3,3,3.5,4,4,4.5,5,5],
+    'age':[5,10,2,15,8,1,20,12,3,25],
+    'score':[8,7,9,6,8,9,5,7,8,4]
+})
+
+# Scale house features
+house_scaled = scaler.fit_transform(house)
+
+# PCA (2 components)
+house_pca = PCA(n_components=2).fit_transform(house_scaled)
+
+# Plot PCA points
+plt.scatter(house_pca[:,0], house_pca[:,1])
+plt.title("House Data - PCA 2D")
+plt.xlabel("PC1"); plt.ylabel("PC2")
+plt.show()
