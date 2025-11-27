@@ -77,6 +77,8 @@ print(f"Train MSE: {mse_train:.4f}, Test MSE: {mse_test:.4f}")
 
 
 
+
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -126,3 +128,43 @@ plt.show()
 
 new_height = [[175]]
 print(f"Prediction for 175cm: {model.predict(new_height)[0]}")
+
+
+
+
+
+
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+# Dataset
+df = pd.DataFrame({
+    'Height':[62,64,66,68,70,72,74,76,78,80],
+    'Weight':[120,130,142,150,162,170,182,190,205,215]
+})
+
+# Feature & Target
+X = df[['Height']]
+y = df['Weight']
+
+# Split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)
+
+# Model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Prediction
+y_pred = model.predict(X_test)
+
+# Equation
+print("Slope:", model.coef_[0])
+print("Intercept:", model.intercept_)
+
+# Show predictions
+print("\nActual:", list(y_test.values))
+print("Predicted:", list(y_pred))
