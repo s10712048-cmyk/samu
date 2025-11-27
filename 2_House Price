@@ -78,6 +78,7 @@ print(f"Predicted price for new house: {model.predict(new_house_scaled)[0]:.2f} 
 
 
 
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -128,3 +129,47 @@ plt.show()
 
 sample = X_test[0].reshape(1, -1)
 print(f"Prediction for sample: {model.predict(sample)[0]}")
+
+
+
+
+
+
+
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+# Dataset
+df = pd.DataFrame({
+    'Size':[1500,1800,2000,2200,2400,2600,2800,3000,3200,3500],
+    'Bedrooms':[3,3,4,4,4,5,5,5,6,6],
+    'Bathrooms':[2,2.5,3,3,3.5,4,4,4.5,5,5],
+    'Age':[5,10,2,15,8,1,20,12,3,25],
+    'Price':[45,52,68,55,75,85,48,78,95,42]
+})
+
+# Features & Target
+X = df[['Size','Bedrooms','Bathrooms','Age']]
+y = df['Price']
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)
+
+# Model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Prediction
+y_pred = model.predict(X_test)
+
+# Equation
+print("Coefficients:", model.coef_)
+print("Intercept:", model.intercept_)
+
+# Show actual vs predicted
+print("\nActual Prices:", list(y_test.values))
+print("Predicted Prices:", list(y_pred))
